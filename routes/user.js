@@ -1,17 +1,27 @@
 var express = require('express');
 var router = express.Router();
 var csrf = require ('csurf');
+var User = require ('../models/user');
 var passport = require('passport');
 
 var csrfProtection = csrf();
 router.use(csrfProtection);
 
 router.get('/profile', isLoggedIn, function (req,res,next) {
-  res.render('user/profile');
+  User.findById(req.session.user_id, function(err,user) {
+    if (err) {
+        console.log("Error:", err);
+    } else {
+        res.render('user/profile', {data:user});
+    }
+  });
 });
 
 router.get('/logout', isLoggedIn, function (req,res,next) {
   req.logout;
+  req.session.destroy(function(err){
+    console.log("LOGOUT success");
+  })
   res.redirect('/');
 });
 

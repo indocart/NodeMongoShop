@@ -15,8 +15,6 @@ passport.deserializeUser(function (id, done) {
 passport.use('local.signup', new LocalStrategy({
     usernameField: 'email',
     passwordField: 'password',
-    //nameField: 'name',
-    //genderField: 'gender',
     passReqToCallback: true},
 
     function (req, email, password, done) {
@@ -40,7 +38,7 @@ passport.use('local.signup', new LocalStrategy({
             var newUser = new User();
             newUser.email = email;
             newUser.password = newUser.encryptPassword(password);
-            newUser.name =req.body.name;
+            newUser.name = req.body.name;
             newUser.gender = req.body.gender;
             newUser.save(function(err, result) {
                if (err) {
@@ -76,6 +74,7 @@ passport.use('local.signin', new LocalStrategy({
         if (!user.validPassword(password)) {
             return done(null, false, {message: 'Wrong password.'});
         }
+        req.session.user_id=user.id;
         return done(null, user);
     });
 }));
