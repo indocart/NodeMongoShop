@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var Product = require('../models/product');
+var Cart = require('../models/cart');
 var formidable = require('formidable');
 const util = require('util');
 
@@ -14,6 +15,48 @@ router.get('/', function (req, res, next) {
         }
         res.render('shop/index', { title: 'Shopping Cart', products: productChunks });
     });
+});
+
+router.get('/add-to-cart/:id', function (req, res, next) {
+  var productId = req.params.id;
+  var cart = new Cart(req.session.cart ? req.session.cart : {});
+
+  Product.findById(productId, function (err, product) {
+    cart.add(product, product.id);
+    req.session.cart = cart;
+    res.redirect('/');
+  });
+});
+
+router.get('/shopping-cart', function (req, res, next) {
+  if (!req.session.cart) {
+    return res.render ('shop/shopping-cart', {products:null});
+  }
+  var cart = new Cart(req.session.cart);
+  res.render('shop/shopping-cart', {products: cart.generateArray(), totalPrice:cart.totalPrice});
+});
+
+router.get('/reduce-one/:id', function (req, res, next) {
+  var productId = req.params.id;
+  var cart = new Cart(req.session.cart ? req.session.cart : {});
+    cart.reduce(productId);
+    req.session.cart = cart;
+    res.redirect('/shopping-cart');
+});
+
+router.get('/remove-all/:id', function (req, res, next) {
+  var productId = req.params.id;
+  var cart = new Cart(req.session.cart ? req.session.cart : {});
+    cart.remove(productId);
+    req.session.cart = cart;
+    res.redirect('/shopping-cart');
+});
+
+router.get('/logout', function(req,res,next) {
+  session = req.session;
+  session.destroy(function(err){
+    res.redirect('/');
+  });
 });
 
 router.get('/addNewProduct', function (req, res) {
